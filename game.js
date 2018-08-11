@@ -31,11 +31,8 @@ var keyW;
 var keyA;
 var keyD;
 var keySpace;
-<<<<<<< HEAD
 var doubleJump = false;
-=======
 var slimes = [];
->>>>>>> ffa96c29bf8afb89b91152d976b42ffd820a61b2
 
 function preload(){
     this.load.image('background', 'assets/background.png');
