@@ -1,3 +1,4 @@
+import Slime from "./slime.js";
 var testGravity = 300;
 
 var config = {
@@ -30,6 +31,7 @@ var keyW;
 var keyA;
 var keyD;
 var keySpace;
+var slimes = [];
 
 function preload(){
     this.load.image('background', 'assets/background.png');
@@ -41,6 +43,12 @@ function preload(){
 
 function create(){
 
+    for(var i = 0; i < 3; i++) {
+        var xPos = 500 + 10 
+        var yPos = 300
+        slimes.push(new Slime(xPos, yPos, 'greenSlime'))
+    }
+
     cursors = this.input.keyboard.createCursorKeys();
     keyW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
     keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
@@ -51,15 +59,18 @@ function create(){
     floor = this.physics.add.staticImage(400, 580, 'floor');
     spike1 = this.physics.add.sprite(-500, 300, 'spikeWall');
     spike2 = this.physics.add.sprite(1300, 300, 'spikeWall').setFlipX(true).setFlipY(true);
-    slime = this.physics.add.sprite(500, 300, 'greenSlime').setScale(0.4);
     player = this.physics.add.sprite(400, 500, 'player').setScale(0.5).setDrag(0);
 
     player.setBounce(0.2);
     player.setCollideWorldBounds(true);
     this.physics.add.overlap(spike2, spike1, End);
     this.physics.add.collider(player, floor);
-    this.physics.add.collider(slime, floor);
-    this.physics.add.overlap(player, slime, newSlime);
+    
+    slimes.forEach((slime) => {
+        slime.sprite = this.physics.add.sprite(slime.xPos, slime.yPos, slime.texture).setScale(0.4);
+        this.physics.add.collider(slime.sprite, floor);
+        this.physics.add.overlap(player, slime.sprite, slime.setPosition);
+    })
 
 }
 function update(){
@@ -90,9 +101,6 @@ function update(){
     }
 }
 
-function newSlime(){
-    slime.setPosition(300, 400);
-}
 
 function End(){
     speed = 0;
