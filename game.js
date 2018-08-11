@@ -30,6 +30,7 @@ var keyW;
 var keyA;
 var keyD;
 var keySpace;
+var doubleJump = false;
 
 function preload(){
     this.load.image('background', 'assets/background.png');
@@ -63,7 +64,10 @@ function create(){
 
 }
 function update(){
+    plyrControl();
+}
 
+function plyrControl(){
     if (keyA.isDown){
         speed = 260;
         player.setVelocityX(-speed);
@@ -85,8 +89,15 @@ function update(){
             player.setVelocityX(speed);
         }
     }
-    if (keyW.isDown && player.body.touching.down || keySpace.isDown && player.body.touching.down ){
-        player.setVelocityY(-330);      
+    if (keyW.isDown && player.body.touching.down && doubleJump == false ){
+        player.setVelocityY(-330);
+        console.log('jump 1') 
+        doubleJump == true;     
+    }
+    else if (keyW.isDown && doubleJump == true && player.body.velocity.y == 0){
+        player.setVelocityY(-330);
+        console.log('jump 2') 
+        // doubleJump = false;
     }
 }
 
@@ -97,3 +108,4 @@ function newSlime(){
 function End(){
     speed = 0;
 }
+
