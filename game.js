@@ -44,9 +44,9 @@ function preload(){
 
 function create(){
 
-    for(var i = 0; i < 3; i++) {
-        var xPos = 500 + 10 
-        var yPos = 300
+    for(var i = 0; i < 100; i++) {
+        var xPos = getRandomInt(100, 700);
+        var yPos = getRandomInt(100, 400);
         slimes.push(new Slime(xPos, yPos, 'greenSlime'))
     }
 
@@ -68,10 +68,11 @@ function create(){
     this.physics.add.collider(player, floor);
     
     slimes.forEach((slime) => {
-        slime.sprite = this.physics.add.sprite(slime.xPos, slime.yPos, slime.texture).setScale(0.4).setBounce(0.5).setVelocityX(200);
+        slime.sprite = this.physics.add.sprite(slime.xPos, slime.yPos, slime.texture).setScale(0.4).setBounce(0.8).setVelocityX(200);
         slime.sprite.body.collideWorldBounds = true;
         this.physics.add.collider(slime.sprite, floor);
-        this.physics.add.overlap(player, slime.sprite, slime.setPosition);
+        this.physics.add.overlap(player, slime.sprite, slime.slimeJump);
+        slime.setPosition;
     })
 
 
@@ -80,9 +81,6 @@ function update(){
     plyrControl();
 }
 
-function Funcworldbounds(){
-    slime.setPosition();
-}
 
 function plyrControl(){
     if (keyA.isDown){
@@ -126,5 +124,11 @@ function plyrControl(){
 
 function End(){
     speed = 0;
+}
+
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min)) + min;
 }
 
