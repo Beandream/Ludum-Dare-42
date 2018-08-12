@@ -100,15 +100,18 @@ function plyrControl(){
             player.setVelocityX(speed);
         }
     }
-    if (keyW.isDown && player.body.touching.down && doubleJump == false ){
-        player.setVelocityY(-330);
-        console.log('jump 1') 
-        doubleJump == true;     
+
+    if (keyW.isDown){
+        if (player.body.touching.down){
+            player.setVelocityY(-330);
+        }
+        else if (doubleJump == true) {
+            player.setVelocityY(-330);
+            doubleJump = false;
+        }
     }
-    else if (keyW.isDown && doubleJump == true && player.body.velocity.y == 0){
-        player.setVelocityY(-330);
-        console.log('jump 2') 
-        // doubleJump = false;
+    else if (!keyW.isDown && !player.body.touching.down){
+        doubleJump = true;
     }
 }
 
