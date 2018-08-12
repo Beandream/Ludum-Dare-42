@@ -9,7 +9,7 @@ var config = {
         default: 'arcade',
         arcade: {
             gravity: {y: 2500},
-            // debug: true,
+            debug: true,
         }
     },
     scene: {
@@ -29,12 +29,15 @@ var cursors;
 var keyW;
 var keyA;
 var keyD;
-var keySpace;
+var keyShift;
 var doubleJump = false;
 var jumped = false;
 var slimes = [];
 var sword;
 var thrown = false;
+var attackframe = 10;
+var attack = false;
+var angle;
 
 function preload(){
     this.load.image('background', 'assets/background.png');
@@ -57,7 +60,7 @@ function create(){
     keyW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
     keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
     keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
-    keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    keyShift = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
 
     this.add.image(400, 300, 'background');
     floor = this.physics.add.staticImage(400, 580, 'floor');
@@ -73,51 +76,79 @@ function create(){
     this.physics.add.collider(player, floor);
     
     slimes.forEach((slime) => {
-        slime.sprite = this.physics.add.sprite(slime.xPos, slime.yPos, slime.texture).setScale(0.4).setBounce(0.8).setVelocityX(200);
+        slime.sprite = this.physics.add.sprite(slime.xPos, slime.yPos, slime.texture).setScale(0.4).setBounce(1, 0.8).setVelocityX(200);
         slime.sprite.body.collideWorldBounds = true;
         this.physics.add.collider(slime.sprite, floor);
         this.physics.add.overlap(player, slime.sprite, slime.slimeJump);
         this.physics.add.overlap(sword, slime.sprite, slime.slimeJump);
-        this.physics.add.overlap(sword, slime.sprite, resetSword);
+        this.physics.add.overlap(sword, slime.sprite, function(){if (thrown){thrown = false;swordRest();}});
     })
 
 
     this.input.on('pointerdown', function (pointer) {
         if (!thrown){
-            thrown = true;
-            let mouse = pointer;
-            let angle = Phaser.Math.Angle.Between(player.x, player.y, mouse.x, mouse.y)          
-            throwSword(mouse, angle);
+            if (keyShift.isDown){
+                thrown = true;
+                let mouse = pointer;
+                let angle = Phaser.Math.Angle.Between(player.x, player.y, mouse.x, mouse.y)          
+                throwSword(mouse, angle);
+            }
+            else{
+                attackframe = 0;
+                thrown = true;
+                attack = true;
+            }
         }
     }, this);
     
     this.input.on('pointermove', function (pointer) {
         let mouse = pointer
-        let angle = Phaser.Math.Angle.Between(player.x, player.y, mouse.x, mouse.y)            
+        angle = Phaser.Math.Angle.Between(player.x, player.y, mouse.x, mouse.y)            
         getAngle(angle);
     }, this);
     
-    this.physics.add.overlap(sword, floor, resetSword);
-
-
+    this.physics.add.overlap(sword, floor, function(){if (thrown){thrown = false;swordRest();}});
 }
 
 function update(){
     plyrControl();
+    swordRest();
 
+    if (attack){
+        if (attackframe < 10){
+            if (angle > 1 && angle < 2){
+                sword.y = player.y + 30;
+            }
+            else if (angle < -1 && angle > -2){
+                sword.y = player.y - 30;
+            }
+            if (Math.abs(angle) > 2){
+                sword.x = player.x - 30;
+            }
+            else if (Math.abs(angle) < 1){
+                sword.x = player.x + 30;
+            }
+            sword.setVelocity(0, 0).setScale(2);
+            // sword.x = player.x;
+            // sword.y = player.y;
+            attackframe += 1;
+        }
+        else{
+            attack = false;
+            thrown = false;
+        }
+    }
+}
+
+function swordRest(){
     if (!thrown){
+        sword.allowGravity = false;
+        sword.setVelocity(0, 0);
+        sword.setOrigin(0.5, 0.5);
+        sword.setScale(1);
         sword.x = player.x;
         sword.y = player.y;
     }
-
-}
-
-function resetSword(){
-    sword.allowGravity = false;
-    sword.setVelocity(0, 0);
-    sword.x = player.x;
-    sword.y = player.y;
-    thrown = false;
 }
 
 function getAngle (angle, mouse){
