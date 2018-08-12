@@ -1,5 +1,4 @@
 import Slime from "./slime.js";
-var testGravity = 300;
 
 var config = {
     type: Phaser.AUTO,
@@ -9,7 +8,7 @@ var config = {
     physics: {
         default: 'arcade',
         arcade: {
-            gravity: {y: testGravity},
+            gravity: {y: 2500},
             // debug: true,
         }
     },
@@ -32,6 +31,7 @@ var keyA;
 var keyD;
 var keySpace;
 var doubleJump = false;
+var jumped = false;
 var slimes = [];
 
 function preload(){
@@ -68,24 +68,30 @@ function create(){
     this.physics.add.collider(player, floor);
     
     slimes.forEach((slime) => {
-        slime.sprite = this.physics.add.sprite(slime.xPos, slime.yPos, slime.texture).setScale(0.4);
+        slime.sprite = this.physics.add.sprite(slime.xPos, slime.yPos, slime.texture).setScale(0.4).setBounce(0.5).setVelocityX(200);
+        slime.sprite.body.collideWorldBounds = true;
         this.physics.add.collider(slime.sprite, floor);
         this.physics.add.overlap(player, slime.sprite, slime.setPosition);
     })
+
 
 }
 function update(){
     plyrControl();
 }
 
+function Funcworldbounds(){
+    slime.setPosition();
+}
+
 function plyrControl(){
     if (keyA.isDown){
-        speed = 260;
+        speed = 400;
         player.setVelocityX(-speed);
         player.setFlipX(true);
     }
     else if (keyD.isDown){
-        speed = 260
+        speed = 400
         player.setVelocityX(speed);
         player.setFlipX(false);
     }
@@ -103,15 +109,17 @@ function plyrControl(){
 
     if (keyW.isDown){
         if (player.body.touching.down){
-            player.setVelocityY(-330);
+            player.setVelocityY(-990);
+            jumped = true;
         }
         else if (doubleJump == true) {
-            player.setVelocityY(-330);
+            player.setVelocityY(-990);
             doubleJump = false;
         }
     }
-    else if (!keyW.isDown && !player.body.touching.down){
+    else if (!keyW.isDown && !player.body.touching.down && jumped == true){
         doubleJump = true;
+        jumped = false
     }
 }
 
