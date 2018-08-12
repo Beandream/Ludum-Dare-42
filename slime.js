@@ -8,7 +8,7 @@ export default class Slime {
     }
 
     setPosition(player, slime){
-       slime.setPosition(getRandomInt(100, 400), getRandomInt(100, 400));
+       slime.setPosition(getRandomInt(100, 700), getRandomInt(0, -100)).setVelocityY(getRandomInt(0, -100));
     }
 
     slimeJump(player, slime){

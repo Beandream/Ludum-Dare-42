@@ -9,7 +9,7 @@ var config = {
         default: 'arcade',
         arcade: {
             gravity: {y: 2500},
-            debug: true,
+            // debug: true,
         }
     },
     scene: {
@@ -38,6 +38,8 @@ var thrown = false;
 var attackframe = 10;
 var attack = false;
 var angle;
+var gold = 0;
+var goldText;
 
 function preload(){
     this.load.image('background', 'assets/background.png');
@@ -67,7 +69,7 @@ function create(){
     spike1 = this.physics.add.sprite(-500, 300, 'spikeWall');
     spike2 = this.physics.add.sprite(1300, 300, 'spikeWall').setFlipX(true).setFlipY(true);
     player = this.physics.add.sprite(400, 500, 'player').setScale(0.5).setDrag(0);
-    sword = this.physics.add.sprite(player.x, player.y, 'sword').setCollideWorldBounds(true);
+    sword = this.physics.add.sprite(player.x, player.y, 'sword').setCollideWorldBounds(true).setScale(1);
     sword.body.allowGravity = false;
 
     player.setBounce(0.2);
@@ -76,11 +78,15 @@ function create(){
     this.physics.add.collider(player, floor);
     
     slimes.forEach((slime) => {
-        slime.sprite = this.physics.add.sprite(slime.xPos, slime.yPos, slime.texture).setScale(0.4).setBounce(1, 0.8).setVelocityX(200);
+        slime.sprite = this.physics.add.sprite(slime.xPos, slime.yPos, slime.texture).setScale(0.4).setBounce(1, 0.3).setVelocityX(200);
+        slime.sprite.body.world.bounds.top = -100;
+        console.log(slime.sprite.body.world.bounds.height)
         slime.sprite.body.collideWorldBounds = true;
         this.physics.add.collider(slime.sprite, floor);
-        this.physics.add.overlap(player, slime.sprite, slime.slimeJump);
-        this.physics.add.overlap(sword, slime.sprite, slime.slimeJump);
+        this.physics.add.overlap(player, slime.sprite, slime.setPosition);
+        this.physics.add.overlap(player, slime.sprite, hurt);
+        this.physics.add.overlap(sword, slime.sprite, slime.setPosition);
+        this.physics.add.overlap(sword, slime.sprite, killSlime);
         this.physics.add.overlap(sword, slime.sprite, function(){if (thrown){thrown = false;swordRest();}});
     })
 
@@ -108,6 +114,7 @@ function create(){
     }, this);
     
     this.physics.add.overlap(sword, floor, function(){if (thrown){thrown = false;swordRest();}});
+    goldText = this.add.text(16, 16, 'Gold: 0', { fontSize: '32px', fill: '#000' });
 }
 
 function update(){
@@ -128,7 +135,7 @@ function update(){
             else if (Math.abs(angle) < 1){
                 sword.x = player.x + 30;
             }
-            sword.setVelocity(0, 0).setScale(2);
+            sword.setVelocity(0, 0).setScale(1.5);
             // sword.x = player.x;
             // sword.y = player.y;
             attackframe += 1;
@@ -140,14 +147,30 @@ function update(){
     }
 }
 
+function hurt(){
+    if (gold > 0){
+        gold = gold - 1;
+        goldText.setText('Gold: ' + gold);
+    }
+}
+
+function killSlime(){
+    gold = gold + 1;
+    goldText.setText('Gold: ' + gold);
+}
+
 function swordRest(){
     if (!thrown){
+        sword.body.checkCollision.none = true;
         sword.allowGravity = false;
         sword.setVelocity(0, 0);
         sword.setOrigin(0.5, 0.5);
         sword.setScale(1);
         sword.x = player.x;
         sword.y = player.y;
+    }
+    else{
+        sword.body.checkCollision.none = false;
     }
 }
 
@@ -157,6 +180,7 @@ function getAngle (angle, mouse){
 
 function throwSword(mouse, angle){
     sword.body.allowGravity = true;
+    sword.setScale(1.3);
     if (Math.abs(angle) >= 1.5){
         sword.setVelocityX(-Phaser.Math.Distance.Between(player.x, 0, mouse.x, 0)*4)
     }
