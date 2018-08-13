@@ -12,8 +12,12 @@ export default class Slime {
     }
 
     slimeJump(player, slime){
-        slime.setVelocityY(getRandomInt(-400, -1600));
-        slime.setVelocityX(getRandomInt(-400, 400));
+        if (slime.sprite.body.touching.down){
+            var i = getRandomInt(1, 50);
+            if (i == 1){
+                slime.sprite.setVelocityY(getRandomInt(-100, -1000));
+            }
+        }
     }
 
 }

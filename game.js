@@ -40,14 +40,18 @@ var attack = false;
 var angle;
 var gold = 0;
 var goldText;
+var rocket;
+var floors;
+var slimesSpawned = false;
 
 function preload(){
     this.load.image('background', 'assets/background.png');
     this.load.image('spikeWall', 'assets/spikeWall.png');
     this.load.image('greenSlime', 'assets/greenSlime.png');
     this.load.image('player', 'assets/player.png');
-    this.load.image('floor', 'assets/floor.png')
-    this.load.image('sword', 'assets/sword.png')
+    this.load.image('floor', 'assets/floor.png');
+    this.load.image('sword', 'assets/sword.png');
+    this.load.image('rocket', 'assets/rocket.png');
 }
 
 function create(){
@@ -65,7 +69,15 @@ function create(){
     keyShift = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
 
     this.add.image(400, 300, 'background');
-    floor = this.physics.add.staticImage(400, 580, 'floor');
+
+    floors = this.physics.add.staticGroup();
+    floors.create(400, 580, 'floor');
+    floors.create(100, 300, 'floor').setScale(0.3).refreshBody();
+    floors.create(700, 300, 'floor').setScale(0.3).refreshBody();
+    floors.create(400, 100, 'floor').setScale(0.3).refreshBody();
+
+    rocket = this.physics.add.sprite(400, 505, 'rocket');
+    rocket.body.allowGravity = false;
     spike1 = this.physics.add.sprite(-500, 300, 'spikeWall');
     spike2 = this.physics.add.sprite(1300, 300, 'spikeWall').setFlipX(true).setFlipY(true);
     player = this.physics.add.sprite(400, 500, 'player').setScale(0.5).setDrag(0);
@@ -75,19 +87,20 @@ function create(){
     player.setBounce(0.2);
     player.setCollideWorldBounds(true);
     this.physics.add.overlap(spike2, spike1, End);
-    this.physics.add.collider(player, floor);
+    this.physics.add.collider(player, floors);
     
     slimes.forEach((slime) => {
         slime.sprite = this.physics.add.sprite(slime.xPos, slime.yPos, slime.texture).setScale(0.4).setBounce(1, 0.3).setVelocityX(200);
         slime.sprite.body.world.bounds.top = -100;
         console.log(slime.sprite.body.world.bounds.height)
         slime.sprite.body.collideWorldBounds = true;
-        this.physics.add.collider(slime.sprite, floor);
+        this.physics.add.collider(slime.sprite, floors);
         this.physics.add.overlap(player, slime.sprite, slime.setPosition);
         this.physics.add.overlap(player, slime.sprite, hurt);
         this.physics.add.overlap(sword, slime.sprite, slime.setPosition);
         this.physics.add.overlap(sword, slime.sprite, killSlime);
         this.physics.add.overlap(sword, slime.sprite, function(){if (thrown){thrown = false;swordRest();}});
+        slimesSpawned = true;
     })
 
 
@@ -113,11 +126,15 @@ function create(){
         getAngle(angle);
     }, this);
     
-    this.physics.add.overlap(sword, floor, function(){if (thrown){thrown = false;swordRest();}});
+    this.physics.add.overlap(sword, floors, function(){if (thrown){thrown = false;swordRest();}});
+    this.physics.add.overlap(player, rocket, rocketFunc);
     goldText = this.add.text(16, 16, 'Gold: 0', { fontSize: '32px', fill: '#000' });
 }
 
 function update(){
+    if (slimesSpawned){
+        slimeControls();
+    }
     plyrControl();
     swordRest();
 
@@ -144,6 +161,21 @@ function update(){
             attack = false;
             thrown = false;
         }
+    }
+}
+
+function rocketFunc(){
+    if (gold > 5){
+        player.y = 700;
+        rocket.setVelocityY(-100);
+    }
+}
+
+function slimeControls(){
+    if (gold > 5){
+        slimes.forEach((slime) => {
+            slime.slimeJump(player, slime);
+        })
     }
 }
 
