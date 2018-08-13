@@ -43,6 +43,8 @@ var goldText;
 var rocket;
 var floors;
 var slimesSpawned = false;
+var infoText;
+var losed = false;
 
 function preload(){
     this.load.image('background', 'assets/background.png');
@@ -78,11 +80,16 @@ function create(){
 
     rocket = this.physics.add.sprite(400, 505, 'rocket');
     rocket.body.allowGravity = false;
-    spike1 = this.physics.add.sprite(-500, 300, 'spikeWall');
-    spike2 = this.physics.add.sprite(1300, 300, 'spikeWall').setFlipX(true).setFlipY(true);
+    spike1 = this.physics.add.sprite(-400, 300, 'spikeWall');
+    spike2 = this.physics.add.sprite(1200, 300, 'spikeWall').setFlipX(true).setFlipY(true);
     player = this.physics.add.sprite(400, 500, 'player').setScale(0.5).setDrag(0);
     sword = this.physics.add.sprite(player.x, player.y, 'sword').setCollideWorldBounds(true).setScale(1);
     sword.body.allowGravity = false;
+    spike1.body.allowGravity = false;
+    spike2.body.allowGravity = false;
+    spike1.body.immovable = true;
+    spike2.body.immovable = true;
+    console.log(spike1.body);
 
     player.setBounce(0.2);
     player.setCollideWorldBounds(true);
@@ -95,6 +102,8 @@ function create(){
         console.log(slime.sprite.body.world.bounds.height)
         slime.sprite.body.collideWorldBounds = true;
         this.physics.add.collider(slime.sprite, floors);
+        this.physics.add.collider(slime.sprite, spike1);
+        this.physics.add.collider(slime.sprite, spike2);
         this.physics.add.overlap(player, slime.sprite, slime.setPosition);
         this.physics.add.overlap(player, slime.sprite, hurt);
         this.physics.add.overlap(sword, slime.sprite, slime.setPosition);
@@ -102,7 +111,6 @@ function create(){
         this.physics.add.overlap(sword, slime.sprite, function(){if (thrown){thrown = false;swordRest();}});
         slimesSpawned = true;
     })
-
 
     this.input.on('pointerdown', function (pointer) {
         if (!thrown){
@@ -127,11 +135,43 @@ function create(){
     }, this);
     
     this.physics.add.overlap(sword, floors, function(){if (thrown){thrown = false;swordRest();}});
-    this.physics.add.overlap(player, rocket, rocketFunc);
-    goldText = this.add.text(16, 16, 'Gold: 0', { fontSize: '32px', fill: '#000' });
+    this.physics.add.overlap(player, rocket, () => {
+        if (gold > 9){
+            this.cameras.main.fade(4000, 255, 255, 255);
+            goldText.setText("");
+            infoText.setColor("#000")
+            infoText.setText("         YOU WIN!");
+            player.y = 700;
+            rocket.setAccelerationY(-100);
+        }
+    });
+    goldText = this.add.text(16, 16, 'Gold: 0', { fontSize: '32px', fill: '#ffffff' });
+    infoText = this.add.text(150, 350, 'WASD, Hold Shift to throw\n  Sword with left Click', { fontSize: '32px', fill: '#000' });
+    // console.log(this.physics.on(''));
+    this.physics.add.overlap(player, spike1, () => {
+        // resetAll();
+        this.cameras.main.fade(1500, 0, 0, 0);
+    });
+    this.physics.add.overlap(player, spike2, () => {
+        // resetAll();
+        this.cameras.main.fade(1500, 0, 0, 0);
+    });
+    // this.input.on('pointermove', function () {
+    //     resetAll();
+    //     this.cameras.main.fade(1500, 0, 0, 0);
+    // }, this);
+    this.cameras.main.on('camerafadeoutcomplete', function () {
+        resetAll();
+        this.scene.restart();
+
+    }, this);
+
 }
 
 function update(){
+
+    spike1.setVelocityX(10);
+    spike2.setVelocityX(-10);
     if (slimesSpawned){
         slimeControls();
     }
@@ -164,11 +204,17 @@ function update(){
     }
 }
 
-function rocketFunc(){
-    if (gold > 5){
-        player.y = 700;
-        rocket.setVelocityY(-100);
-    }
+function resetAll(){
+    speed = 0;
+    doubleJump = false;
+    jumped = false;
+    thrown = false;
+    attackframe = 10;
+    attack = false;
+    gold = 0;
+    slimesSpawned = false;
+    losed = false;
+    slimes = [];
 }
 
 function slimeControls(){
@@ -211,6 +257,7 @@ function getAngle (angle, mouse){
 }
 
 function throwSword(mouse, angle){
+    infoText.setText("");
     sword.body.allowGravity = true;
     sword.setScale(1.3);
     if (Math.abs(angle) >= 1.5){
@@ -272,7 +319,8 @@ function plyrControl(){
 
 
 function End(){
-    speed = 0;
+    spike1.setVelocityX(0);
+    spike2.setVelocityX(0);
 }
 
 function getRandomInt(min, max) {
